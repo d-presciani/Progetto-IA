@@ -4,25 +4,7 @@ from random import randint
 
 
 # Funzione per stampa della griglia
-def stampa():
-    ctr = 0
-    str = ''
-    print("Griglia:")
-    for el in griglia:
-        mom = repr(el)
-        if el == 0:
-            mom = ' *'
-        if len(mom) == 1:
-            mom = ' ' + mom
-        str += mom + ' '
-        ctr += 1
-        if ctr % 4 == 0 and ctr != 0:
-            print(str)
-            str = ''
-    return
-
-
-def stampaEl(grl):
+def stampa(grl):
     ctr = 0
     str = ''
     print("Griglia:")
@@ -90,7 +72,7 @@ def mescola():
             old = ran
 
 
-def espandiSingolo(el, ind, indAlt, mosse):
+def espandiElemento(el, ind, indAlt, mosse):
     global primaEsec
     mom = list(el)
     mom[ind] = mom[indAlt]
@@ -115,19 +97,19 @@ def espandiFrontiera(el):
         indiceElem = frontiera.index(el)
         mosse = elencoMosse[indiceElem]
     if posX == 0:
-        espandiSingolo(el, indice, indice+1, mosse)
+        espandiElemento(el, indice, indice+1, mosse)
     elif posX > 0 and posX < 3:
-        espandiSingolo(el, indice, indice+1, mosse)
-        espandiSingolo(el, indice, indice-1, mosse)
+        espandiElemento(el, indice, indice+1, mosse)
+        espandiElemento(el, indice, indice-1, mosse)
     elif posX == 3:
-        espandiSingolo(el, indice, indice-1, mosse)
+        espandiElemento(el, indice, indice-1, mosse)
     if posY == 0:
-        espandiSingolo(el, indice, indice+4, mosse)
+        espandiElemento(el, indice, indice+4, mosse)
     elif posY > 0 and posY < 3:
-        espandiSingolo(el, indice, indice+4, mosse)
-        espandiSingolo(el, indice, indice-4, mosse)
+        espandiElemento(el, indice, indice+4, mosse)
+        espandiElemento(el, indice, indice-4, mosse)
     elif posY == 3:
-        espandiSingolo(el, indice, indice-4, mosse)
+        espandiElemento(el, indice, indice-4, mosse)
     if not primaEsec:
         indiceElim = frontiera.index(el)
         del frontiera[indiceElim]
@@ -151,7 +133,7 @@ primaEsec = True
 griglia = [i for i in range(1, 16)]
 griglia.append(0)
 mescola()
-stampa()
+stampa(griglia)
 print("Distanza di Manhattan iniziale: ", distanzaManhattan(griglia), "\n")
 eliminati.append(griglia)
 espandiFrontiera(griglia)
