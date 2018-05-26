@@ -141,11 +141,30 @@ while nroNodiCk <= 100000 and not finito:
     if nroNodiCk % 1000 == 0:
         print("Iterazione nro: ", nroNodiCk)
     nroNodiCk += 1
-    indiceMin = distanzeMNH.index(min(distanzeMNH))
-    if distanzeMNH[indiceMin] == 0:
+
+    # Variabili per ricerda del minimo:
+    distManMin = distanzeMNH[0]
+    lenElMos = len(elencoMosse[0])
+    indiceMin = [0]
+
+    # Ricerca dell'elemento con distanza di Manhattam minore e con elenco mosse più corto
+    for i in range(1, len(frontiera)):
+        if distanzeMNH[i] < distManMin:
+            indiceMin.clear()
+            distManMin = distanzeMNH[i]
+            lenElMos = len(elencoMosse[i])
+            indiceMin.append(i)
+        elif distanzeMNH[i] == distManMin:
+            if len(elencoMosse[i]) < lenElMos:
+                lenElMos = len(elencoMosse[i])
+                indiceMin.clear()
+                indiceMin.append(i)
+            elif len(elencoMosse[i]) == lenElMos:
+                indiceMin.append(i)
+    if distanzeMNH[indiceMin[0]] == 0:
         finito = True
     else:
-        espandiFrontiera(frontiera[indiceMin])
+        espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
 if finito:
     mosse = elencoMosse[distanzeMNH.index(min(distanzeMNH))]
     print("E' stata trovata una soluzione in ", nroNodiCk, "passi")

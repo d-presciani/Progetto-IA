@@ -15,6 +15,12 @@ listaMom = []
 for i in range(1, 6):
     listaMom.append(i)
 
+for i in range(0, len(listaMom)):
+    print(listaMom[i])
+print(len(listaMom))
+print(listaMom)
+
+"""
 lista.append(list(listaMom))
 
 listaMom.clear()
@@ -28,6 +34,7 @@ print(lista)
 print([1, 2, 3, 4, 5] in lista)
 
 listaMom.append(8)
+"""
 
 """
 
