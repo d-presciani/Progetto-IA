@@ -1,4 +1,3 @@
-# TODO Aggiungere euristica posizioni sbagliate, aggiungere switch case per calcolo eutistica
 # TODO MEGA IMPORTANTE: camire come cazzo si esporta su excel
 from random import randint
 import time
