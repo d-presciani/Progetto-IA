@@ -3,6 +3,10 @@
 from random import randint
 import time
 
+# Var globali
+maxCicli = 5000
+dimensione = 4  # Numero di elementi per riga (numero di elementi totali = dimensione^2 -1)
+
 
 # Funzione per stampa della griglia
 def stampa(grl):
@@ -17,15 +21,16 @@ def stampa(grl):
             mom = ' ' + mom
         str += mom + ' '
         ctr += 1
-        if ctr % 4 == 0 and ctr != 0:
+        if ctr % dimensione == 0 and ctr != 0:
             print(str)
             str = ''
     return
 
 
+# Calcolo del numero di elementi fuori posizione
 def fuoriposto(grl):
     fp = 0
-    for ind in range(16):
+    for ind in range(dimensione*dimensione):
         if grl[ind] != 0 and grl[ind]-1 != ind:
             fp += 1
     return fp
@@ -36,20 +41,21 @@ def distanzaManhattan(lst):
     md = 0
     for elem in lst:
         if elem != 0:
-            deltaY = abs((elem-1) // 4 - lst.index(elem) // 4)
-            deltaX = abs((elem-1) % 4 - lst.index(elem) % 4)
+            deltaY = abs((elem-1) // dimensione - lst.index(elem) // dimensione)
+            deltaX = abs((elem-1) % dimensione - lst.index(elem) % dimensione)
             md += deltaX + deltaY
     return md
 
 
+# Calcolo dei conflitti verticali
 def conflittiVerticali(grl):
     puzz = grl
     lc = 0
-    for colonna in range(4):
+    for colonna in range(dimensione):
         massimo = -1
-        for riga in range(4):
-            numero = puzz[colonna+riga*4]
-            rDest = numero % 4
+        for riga in range(dimensione):
+            numero = puzz[colonna+riga*dimensione]
+            rDest = numero % dimensione
             if numero != 0 and rDest == colonna+1:
                 if numero > massimo:
                     massimo = numero
@@ -58,14 +64,15 @@ def conflittiVerticali(grl):
     return lc
 
 
+# Calcolo dei conflitti orizzontali
 def conflittiOrizzontali(grl):
     puzz = grl
     lc = 0
-    for riga in range(4):
+    for riga in range(dimensione):
         massimo = -1
-        for colonna in range(4):
-            numero = puzz[colonna+riga*4]
-            cDest = (numero-1) // 4
+        for colonna in range(dimensione):
+            numero = puzz[colonna+riga*dimensione]
+            cDest = (numero-1) // dimensione
             if numero != 0 and cDest == riga:
                 if numero > massimo:
                     massimo = numero
@@ -76,39 +83,38 @@ def conflittiOrizzontali(grl):
 
     return lc
 
+
 # Shuffle della griglia di partenza
-
-
 def mescola():
     old = -1  # Variabile per la memorizzazione dell'ultimo numero mosso
     while(distanzaManhattan(griglia) < 1):
-        for i in range(0, 50):
+        for i in range(0, 25):
             elementi = []
             indice = griglia.index(0)
-            posX = indice % 4
-            posY = indice // 4
+            posX = indice % dimensione
+            posY = indice // dimensione
             if posX == 0:
                 if old == -1 or griglia[indice+1] != old:
                     elementi.append(griglia[indice+1])
-            elif posX > 0 and posX < 3:
+            elif posX > 0 and posX < dimensione-1:
                 if old == -1 or griglia[indice+1] != old:
                     elementi.append(griglia[indice+1])
                 if old == -1 or griglia[indice-1] != old:
                     elementi.append(griglia[indice-1])
-            elif posX == 3:
+            elif posX == dimensione-1:
                 if old == -1 or griglia[indice-1] != old:
                     elementi.append(griglia[indice-1])
             if posY == 0:
-                if old == -1 or griglia[indice+4] != old:
-                    elementi.append(griglia[indice+4])
-            elif posY > 0 and posY < 3:
-                if old == -1 or griglia[indice+4] != old:
-                    elementi.append(griglia[indice+4])
-                if old == -1 or griglia[indice-4] != old:
-                    elementi.append(griglia[indice-4])
-            elif posY == 3:
-                if old == -1 or griglia[indice-4] != old:
-                    elementi.append(griglia[indice-4])
+                if old == -1 or griglia[indice+dimensione] != old:
+                    elementi.append(griglia[indice+dimensione])
+            elif posY > 0 and posY < dimensione-1:
+                if old == -1 or griglia[indice+dimensione] != old:
+                    elementi.append(griglia[indice+dimensione])
+                if old == -1 or griglia[indice-dimensione] != old:
+                    elementi.append(griglia[indice-dimensione])
+            elif posY == dimensione-1:
+                if old == -1 or griglia[indice-dimensione] != old:
+                    elementi.append(griglia[indice-dimensione])
             # Elementi contiene tutti i numeri che circondano lo 0 e ne scelgo uno a caso
             ran = elementi[randint(0, len(elementi)-1)]
             # Ottengo l'indice del numero da muovere e dello 0
@@ -120,6 +126,7 @@ def mescola():
             old = ran  # Aggiorno l'ultimo numero mosso
 
 
+# Generazione nuova griglia e calcolo distanza Manhattan
 def espandiElemento(grid, indZero, indNum, mosse):
     global primaEsec
     global finito
@@ -152,8 +159,8 @@ def espandiElemento(grid, indZero, indNum, mosse):
 def espandiFrontiera(grid):
     global primaEsec
     indiceZero = grid.index(0)  # Ricerca dello 0 nella griglia fornita
-    posX = indiceZero % 4
-    posY = indiceZero // 4
+    posX = indiceZero % dimensione
+    posY = indiceZero // dimensione
     if primaEsec:
         mosse = []  # Array per la memorizzazione delle mosse fatte
     else:
@@ -167,22 +174,22 @@ def espandiFrontiera(grid):
     if posX == 0:
         espandiElemento(grid, indiceZero, indiceZero+1, mosse)
     # Zero nelle colonne centrale, inserisco in frontiera il numero a sinistra e quello a destra dello zero
-    elif posX > 0 and posX < 3:
+    elif posX > 0 and posX < (dimensione-1):
         espandiElemento(grid, indiceZero, indiceZero+1, mosse)
         espandiElemento(grid, indiceZero, indiceZero-1, mosse)
     # Zero nel'ultima colonna, inserisco in frontiera il numero a sinistra dello zero
-    elif posX == 3:
+    elif posX == (dimensione-1):
         espandiElemento(grid, indiceZero, indiceZero-1, mosse)
     # Zero nella prima riga, inserisco in frontiera il numero sotto allo zero
     if posY == 0:
-        espandiElemento(grid, indiceZero, indiceZero+4, mosse)
+        espandiElemento(grid, indiceZero, indiceZero+dimensione, mosse)
     # Zero nelle righe centrali, inserisco in frontiera il numero sopra e quello sotto allo zero
-    elif posY > 0 and posY < 3:
-        espandiElemento(grid, indiceZero, indiceZero+4, mosse)
-        espandiElemento(grid, indiceZero, indiceZero-4, mosse)
+    elif posY > 0 and posY < (dimensione-1):
+        espandiElemento(grid, indiceZero, indiceZero+dimensione, mosse)
+        espandiElemento(grid, indiceZero, indiceZero-dimensione, mosse)
     # Zero nell'ultima' riga, inserisco in frontiera il numero sopra allo zero
-    elif posY == 3:
-        espandiElemento(grid, indiceZero, indiceZero-4, mosse)
+    elif posY == (dimensione-1):
+        espandiElemento(grid, indiceZero, indiceZero-dimensione, mosse)
     if not primaEsec and not finito:
         # Elimino dalla frontiera la configurazione appena analizzata (elimino la relativa distanza di Manhattan e l'elenco mosse)
         indiceElim = frontiera.index(grid)
@@ -195,6 +202,7 @@ def espandiFrontiera(grid):
         primaEsec = False
 
 
+# Main
 for iterazione in range(1):
     print("\n\nIterazione #", iterazione)
     # Variabili
@@ -203,12 +211,11 @@ for iterazione in range(1):
     distanzeMNH = []  # Lista di distanze di Manhattan legate agli elementi nella frontiera
     elencoMosse = []  # Lista contenente le liste delle mosse da eseguire che portano alla soluzione
     nroNodiCk = 0  # Contatore dei cicli
-    maxCicli = 5000  # Numero massimo di controlli
     finito = False  # Flag per controllo fine
     primaEsec = True  # Flag per controllo prima esecuzione
 
     # Generazione griglia e mescolamento
-    griglia = [i for i in range(1, 16)]
+    griglia = [i for i in range(1, dimensione*dimensione)]
     griglia.append(0)
     mescola()
     stampa(griglia)
