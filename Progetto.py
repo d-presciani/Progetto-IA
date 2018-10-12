@@ -23,6 +23,14 @@ def stampa(grl):
     return
 
 
+def fuoriposto(grl):
+    fp = 0
+    for ind in range(16):
+        if grl[ind] != 0 and grl[ind]-1 != ind:
+            fp += 1
+    return fp
+
+
 # Calcolo della distanza di Manhattan per la griglia data
 def distanzaManhattan(lst):
     md = 0
@@ -74,7 +82,7 @@ def conflittiOrizzontali(grl):
 def mescola():
     old = -1  # Variabile per la memorizzazione dell'ultimo numero mosso
     while(distanzaManhattan(griglia) < 1):
-        for i in range(0, 20):
+        for i in range(0, 50):
             elementi = []
             indice = griglia.index(0)
             posX = indice % 4
@@ -149,7 +157,7 @@ def espandiFrontiera(grid):
     if primaEsec:
         mosse = []  # Array per la memorizzazione delle mosse fatte
     else:
-        # ottendo l'indice dell'elem
+        # Ottendo l'indice dell'elem
         indiceElem = frontiera.index(grid)
         # Recupero elenco mosse fatte per arrivare a questa configurazione
         mosse = elencoMosse[indiceElem]
@@ -187,7 +195,7 @@ def espandiFrontiera(grid):
         primaEsec = False
 
 
-for iterazione in range(20):
+for iterazione in range(1):
     print("\n\nIterazione #", iterazione)
     # Variabili
     frontiera = []  # La frontiera contiene tutte le configurazioni da esplorare
@@ -195,6 +203,7 @@ for iterazione in range(20):
     distanzeMNH = []  # Lista di distanze di Manhattan legate agli elementi nella frontiera
     elencoMosse = []  # Lista contenente le liste delle mosse da eseguire che portano alla soluzione
     nroNodiCk = 0  # Contatore dei cicli
+    maxCicli = 5000  # Numero massimo di controlli
     finito = False  # Flag per controllo fine
     primaEsec = True  # Flag per controllo prima esecuzione
 
@@ -205,91 +214,98 @@ for iterazione in range(20):
     stampa(griglia)
     grigliaCopy = griglia
     print("Distanza di Manhattan iniziale: ", distanzaManhattan(griglia), "\n")
+    # Inizio
+    # 0 Celle fuori posto
+    # 1 Manhattan
+    # 2 Manhattan + inversioni
+    # 3 A* (numero passi sluzione + Manhattan + inversioni)
+    for euristica in range(4):
+        # Reset delle variabili per ripetizione con euristica diversa
+        frontiera = []
+        eliminati = []
+        distanzeMNH = []
+        elencoMosse = []
+        nroNodiCk = 0
+        finito = False
+        primaEsec = True
+        griglia = grigliaCopy
+        start_time = time.time()  # Variabile per calcolo tempo esecuzione
+        eliminati.append(griglia)
+        espandiFrontiera(griglia)
+        while nroNodiCk <= maxCicli and not finito:
+            # Numero massimo di stati esplorabili = 5000
+            nroNodiCk += 1
 
-    # Inizio ricerca soluzione
-    elapsed_time = 0
-    start_time = time.time()
-    eliminati.append(griglia)
-    espandiFrontiera(griglia)
-    while nroNodiCk <= 10000 and not finito:
-        # if nroNodiCk % 1000 == 0:
-        #    print("Iterazione nro: ", nroNodiCk)
-        nroNodiCk += 1
+            # Variabili per ricerda del minimo:
+            indiceMin = []
+            indiceMin.append(0)
+            if euristica == 0:
+                valEurMin = fuoriposto(frontiera[0])
 
-        # Variabili per ricerda del minimo:
-        distManMin = distanzeMNH[0] + \
-            conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
-        indiceMin = [0]
+            # 1 Manhattan
+            elif euristica == 1:
+                valEurMin = distanzeMNH[0]
 
-        # Ricerca dell'elemento con distanza di Manhattan greedy
-        for i in range(1, len(frontiera)):
-            valEuristica = distanzeMNH[i] + \
-                conflittiVerticali(frontiera[i]) + conflittiOrizzontali(frontiera[i])
-            if distanzeMNH[i] < distManMin:
-                indiceMin.clear()
-                distManMin = distanzeMNH[i]
-                indiceMin.append(i)
-            elif distanzeMNH[i] == distManMin:
-                indiceMin.append(i)
+                # 2 Manhattan + inversioni
+            elif euristica == 2:
+                valEurMin = distanzeMNH[0] + conflittiVerticali(
+                    frontiera[0]) + conflittiOrizzontali(frontiera[0])
 
-        if not finito:
-            espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
+            # 3 A* (numero passi sluzione + Manhattan + inversioni)
+            elif euristica == 3:
+                valEurMin = distanzeMNH[0] + len(elencoMosse[0]) + \
+                    conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
 
-    if finito:
-        mosse = elencoMosse[0]
-        print("\nSOLUZIONE MANHATTAN GREEDY")
-        print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
-        print("Nunero di mosse da eseguire: ", len(mosse))
-        print("Tempo impiegato: ", elapsed_time)
-        print("Elenco mosse:\n", mosse)
-    else:
-        print("Soluzione non trovata in 100000 passi")
+            for i in range(1, len(frontiera)):
+                # 0 Celle fuori posto
+                if euristica == 0:
+                    valEuristica = fuoriposto(frontiera[i])
 
-    print("\n\n")
+                # 1 Manhattan
+                elif euristica == 1:
+                    valEuristica = distanzeMNH[i]
 
-    # Reset delle variabili per ripetizione con euristica diversa
-    frontiera = []
-    eliminati = []
-    distanzeMNH = []
-    elencoMosse = []
-    nroNodiCk = 0
-    finito = False
-    primaEsec = True
-    griglia = grigliaCopy
-    start_time = time.time()
-    eliminati.append(griglia)
-    espandiFrontiera(griglia)
+                    # 2 Manhattan + inversioni
+                elif euristica == 2:
+                    valEuristica = distanzeMNH[i] + conflittiVerticali(
+                        frontiera[i]) + conflittiOrizzontali(frontiera[i])
 
-    while nroNodiCk <= 10000 and not finito:
-        # if nroNodiCk % 1000 == 0:
-        #    print("Iterazione nro: ", nroNodiCk)
-        nroNodiCk += 1
+                # 3 A* (numero passi sluzione + Manhattan + inversioni)
+                elif euristica == 3:
+                    valEuristica = distanzeMNH[i] + len(elencoMosse[i]) + \
+                        conflittiVerticali(frontiera[i]) + conflittiOrizzontali(frontiera[i])
 
-        # Variabili per ricerda del minimo:
-        distASMin = distanzeMNH[0] + len(elencoMosse[0]) + \
-            conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
-        indiceMin = [0]
+                # Confronto nuovo valore euristica con valore minimo precedente
+                if valEuristica < valEurMin:
+                    valEurMin = valEuristica
+                    indiceMin.clear()
+                    indiceMin.append(i)
+                elif valEuristica == valEurMin:
+                    indiceMin.append(i)
 
-        # Ricerca dell'elemento con distanza di Manhattan + A*
-        for i in range(1, len(frontiera)):
-            valEuristica = distanzeMNH[i] + len(elencoMosse[i]) + \
-                conflittiVerticali(frontiera[i]) + conflittiOrizzontali(frontiera[i])
-            if valEuristica < distASMin:
-                distASMin = valEuristica
-                indiceMin.clear()
-                indiceMin.append(i)
-            elif valEuristica == distASMin:
-                indiceMin.append(i)
+            if not finito:
+                espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
 
-        if not finito:
-            espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
+        if euristica == 0:
+            print("\n\nSOLUZIONE CELLE FUORI POSTO")
 
-    if finito:
-        mosse = elencoMosse[0]
-        print("\nSOLUZIONE MANHATTAN +A*")
-        print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
-        print("Nunero di mosse da eseguire: ", len(mosse))
-        print("Tempo impiegato: ", elapsed_time)
-        print("Elenco mosse:\n", mosse)
-    else:
-        print("Soluzione non trovata in 100000 passi")
+        # 1 Manhattan
+        elif euristica == 1:
+            print("\n\nSOLUZIONE MANHATTAN")
+
+            # 2 Manhattan + inversioni
+        elif euristica == 2:
+            print("\n\nSOLUZIONE MANHATTAN + INVERSIONI")
+
+        # 3 A* (numero passi sluzione + Manhattan + inversioni)
+        elif euristica == 3:
+            print("\n\nSOLUZIONE A* + MANHATTAN + INVERSIONI")
+        if finito:
+            mosse = elencoMosse[0]
+            # 0 Celle fuori posto
+            print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
+            print("Nunero di mosse da eseguire: ", len(mosse))
+            print("Tempo impiegato: ", elapsed_time)
+            print("Elenco mosse:\n", mosse)
+        else:
+            print("Soluzione non trovata in ", maxCicli, " passi")
