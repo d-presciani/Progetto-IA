@@ -1,10 +1,11 @@
-# TODO MEGA IMPORTANTE: camire come cazzo si esporta su excel
 from random import randint
 import time
 
 # Var globali
 maxCicli = 5000
 dimensione = 4  # Numero di elementi per riga (numero di elementi totali = dimensione^2 -1)
+file = open("risultati.txt", "w")
+elapsed_time = 0
 
 
 # Funzione per stampa della griglia
@@ -144,8 +145,6 @@ def espandiElemento(grid, indZero, indNum, mosse):
         dm = distanzaManhattan(mom)
         if dm == 0:
             finito = True
-            temp = list(mosse)
-            temp.append(mom[indZero])
             elencoMosse.clear()
             elencoMosse.append(list(temp))
             elapsed_time = time.time() - start_time
@@ -202,8 +201,10 @@ def espandiFrontiera(grid):
 
 
 # Main
-for iterazione in range(1):
-    print("\n\nIterazione #", iterazione)
+file.write("DISIni CFPassi CFMosse CFTempo ManPassi ManMosse ManTempo ManInvPassi ManInvMosse ManInvTempo ASPassi ASMosse ASTempo\n")
+risultati = []
+for iterazione in range(50):
+    print("\n\nIterazione #", iterazione+1)
     # Variabili
     frontiera = []  # La frontiera contiene tutte le configurazioni da esplorare
     eliminati = []  # Elenco configurazioni eliminate
@@ -212,20 +213,38 @@ for iterazione in range(1):
     nroNodiCk = 0  # Contatore dei cicli
     finito = False  # Flag per controllo fine
     primaEsec = True  # Flag per controllo prima esecuzione
+    risultati = []
 
     # Generazione griglia e mescolamento
     griglia = [i for i in range(1, dimensione*dimensione)]
     griglia.append(0)
     mescola()
-    stampa(griglia)
+    # stampa(griglia)
     grigliaCopy = griglia
-    print("Distanza di Manhattan iniziale: ", distanzaManhattan(griglia), "\n")
+    risultati.append(distanzaManhattan(griglia))
+    print("Distanza di Manhattan iniziale: ", risultati[0], "\n")
     # Inizio
     # 0 Celle fuori posto
     # 1 Manhattan
     # 2 Manhattan + inversioni
     # 3 A* (numero passi sluzione + Manhattan + inversioni)
     for euristica in range(4):
+        # 0 Celle fuori posto
+        if euristica == 0:
+            print("SOLUZIONE CELLE FUORI POSTO")
+
+        # 1 Manhattan
+        elif euristica == 1:
+            print("SOLUZIONE MANHATTAN")
+
+            # 2 Manhattan + inversioni
+        elif euristica == 2:
+            print("SOLUZIONE MANHATTAN + INVERSIONI")
+
+        # 3 A* (numero passi sluzione + Manhattan + inversioni)
+        elif euristica == 3:
+            print("SOLUZIONE A* + MANHATTAN + INVERSIONI")
+
         # Reset delle variabili per ripetizione con euristica diversa
         frontiera = []
         eliminati = []
@@ -239,6 +258,8 @@ for iterazione in range(1):
         eliminati.append(griglia)
         espandiFrontiera(griglia)
         while nroNodiCk <= maxCicli and not finito:
+            if nroNodiCk % 1000 == 0 and nroNodiCk != 0:
+                print("Passo #", nroNodiCk)
             # Numero massimo di stati esplorabili = 5000
             nroNodiCk += 1
 
@@ -292,26 +313,29 @@ for iterazione in range(1):
             if not finito:
                 espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
 
-        if euristica == 0:
-            print("\n\nSOLUZIONE CELLE FUORI POSTO")
+        risultati.append(nroNodiCk)
+        if nroNodiCk >= 5000:
+            elapsed_time = time.time() - start_time
+            risultati.append(5001)
+        else:
+            risultati.append(len(elencoMosse[0]))
+        # Salvataggio risultati in array
+        risultati.append(elapsed_time)
 
-        # 1 Manhattan
-        elif euristica == 1:
-            print("\n\nSOLUZIONE MANHATTAN")
-
-            # 2 Manhattan + inversioni
-        elif euristica == 2:
-            print("\n\nSOLUZIONE MANHATTAN + INVERSIONI")
-
-        # 3 A* (numero passi sluzione + Manhattan + inversioni)
-        elif euristica == 3:
-            print("\n\nSOLUZIONE A* + MANHATTAN + INVERSIONI")
         if finito:
+            '''
             mosse = elencoMosse[0]
-            # 0 Celle fuori posto
             print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
             print("Nunero di mosse da eseguire: ", len(mosse))
             print("Tempo impiegato: ", elapsed_time)
             print("Elenco mosse:\n", mosse)
+            '''
         else:
-            print("Soluzione non trovata in ", maxCicli, " passi")
+            print("Soluzione non trovata in ", maxCicli, " passi\n")
+    # Scrittura del file
+    ris = ""
+    for el in risultati:
+        ris += str(el) + " "
+    ris += "\n"
+    file.write(ris)
+file.close()
