@@ -1,3 +1,7 @@
+# TODO Inserire menù selezione:
+# 1: inserisci e risolvi griglia (con dimensione variabile schema)
+# 2: esegui test (ricevere numero di iterazioni e dimensione dello schema, magari anche massimo numero di controlli)
+
 from random import randint
 import time
 
@@ -88,7 +92,7 @@ def conflittiOrizzontali(grl):
 def mescola():
     old = -1  # Variabile per la memorizzazione dell'ultimo numero mosso
     while(distanzaManhattan(griglia) < 1):
-        for i in range(0, 25):
+        for i in range(0, 10):
             elementi = []
             indice = griglia.index(0)
             posX = indice % dimensione
@@ -203,7 +207,7 @@ def espandiFrontiera(grid):
 # Main
 file.write("DISIni CFPassi CFMosse CFTempo ManPassi ManMosse ManTempo ManInvPassi ManInvMosse ManInvTempo ASPassi ASMosse ASTempo\n")
 risultati = []
-for iterazione in range(50):
+for iterazione in range(500):
     print("\n\nIterazione #", iterazione+1)
     # Variabili
     frontiera = []  # La frontiera contiene tutte le configurazioni da esplorare
@@ -280,7 +284,7 @@ for iterazione in range(50):
 
             # 3 A* (numero passi sluzione + Manhattan + inversioni)
             elif euristica == 3:
-                valEurMin = distanzeMNH[0] + len(elencoMosse[0]) + \
+                valEurMin = distanzeMNH[0] + \
                     conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
 
             for i in range(1, len(frontiera)):
