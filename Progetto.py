@@ -1,7 +1,3 @@
-# TODO Inserire menù selezione:
-# 1: inserisci e risolvi griglia (con dimensione variabile schema)
-# 2: esegui test (ricevere numero di iterazioni e dimensione dello schema, magari anche massimo numero di controlli)
-
 from random import randint
 import time
 
@@ -92,7 +88,7 @@ def conflittiOrizzontali(grl):
 def mescola():
     old = -1  # Variabile per la memorizzazione dell'ultimo numero mosso
     while(distanzaManhattan(griglia) < 1):
-        for i in range(0, 10):
+        for i in range(0, 15):
             elementi = []
             indice = griglia.index(0)
             posX = indice % dimensione
@@ -205,9 +201,11 @@ def espandiFrontiera(grid):
 
 
 # Main
+sel = 0
+iterazioniSchema = 20
 file.write("DISIni CFPassi CFMosse CFTempo ManPassi ManMosse ManTempo ManInvPassi ManInvMosse ManInvTempo ASPassi ASMosse ASTempo\n")
 risultati = []
-for iterazione in range(500):
+for iterazione in range(1):
     print("\n\nIterazione #", iterazione+1)
     # Variabili
     frontiera = []  # La frontiera contiene tutte le configurazioni da esplorare
@@ -232,114 +230,118 @@ for iterazione in range(500):
     # 1 Manhattan
     # 2 Manhattan + inversioni
     # 3 A* (numero passi sluzione + Manhattan + inversioni)
-    for euristica in range(4):
-        # 0 Celle fuori posto
-        if euristica == 0:
-            print("SOLUZIONE CELLE FUORI POSTO")
-
-        # 1 Manhattan
-        elif euristica == 1:
-            print("SOLUZIONE MANHATTAN")
-
-            # 2 Manhattan + inversioni
-        elif euristica == 2:
-            print("SOLUZIONE MANHATTAN + INVERSIONI")
-
-        # 3 A* (numero passi sluzione + Manhattan + inversioni)
-        elif euristica == 3:
-            print("SOLUZIONE A* + MANHATTAN + INVERSIONI")
-
-        # Reset delle variabili per ripetizione con euristica diversa
-        frontiera = []
-        eliminati = []
-        distanzeMNH = []
-        elencoMosse = []
-        nroNodiCk = 0
-        finito = False
-        primaEsec = True
-        griglia = grigliaCopy
-        start_time = time.time()  # Variabile per calcolo tempo esecuzione
-        eliminati.append(griglia)
-        espandiFrontiera(griglia)
-        while nroNodiCk <= maxCicli and not finito:
-            if nroNodiCk % 1000 == 0 and nroNodiCk != 0:
-                print("Passo #", nroNodiCk)
-            # Numero massimo di stati esplorabili = 5000
-            nroNodiCk += 1
-
-            # Variabili per ricerda del minimo:
-            indiceMin = []
-            indiceMin.append(0)
+    for itSchema in range(iterazioniSchema):
+        print("\nRipetizione #", itSchema+1)
+        risultati = []
+        risultati.append(distanzaManhattan(griglia))
+        for euristica in range(4):
+            # 0 Celle fuori posto
             if euristica == 0:
-                valEurMin = fuoriposto(frontiera[0])
+                print("SOLUZIONE CELLE FUORI POSTO")
 
             # 1 Manhattan
             elif euristica == 1:
-                valEurMin = distanzeMNH[0]
+                print("SOLUZIONE MANHATTAN")
 
                 # 2 Manhattan + inversioni
             elif euristica == 2:
-                valEurMin = distanzeMNH[0] + conflittiVerticali(
-                    frontiera[0]) + conflittiOrizzontali(frontiera[0])
+                print("SOLUZIONE MANHATTAN + INVERSIONI")
 
             # 3 A* (numero passi sluzione + Manhattan + inversioni)
             elif euristica == 3:
-                valEurMin = distanzeMNH[0] + \
-                    conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
+                print("SOLUZIONE A* + MANHATTAN + INVERSIONI")
 
-            for i in range(1, len(frontiera)):
-                # 0 Celle fuori posto
+            # Reset delle variabili per ripetizione con euristica diversa
+            frontiera = []
+            eliminati = []
+            distanzeMNH = []
+            elencoMosse = []
+            nroNodiCk = 0
+            finito = False
+            primaEsec = True
+            griglia = grigliaCopy
+            start_time = time.time()  # Variabile per calcolo tempo esecuzione
+            eliminati.append(griglia)
+            espandiFrontiera(griglia)
+            while nroNodiCk <= maxCicli and not finito:
+                if nroNodiCk % 1000 == 0 and nroNodiCk != 0:
+                    print("Passo #", nroNodiCk)
+                # Numero massimo di stati esplorabili = 5000
+                nroNodiCk += 1
+
+                # Variabili per ricerda del minimo:
+                indiceMin = []
+                indiceMin.append(0)
                 if euristica == 0:
-                    valEuristica = fuoriposto(frontiera[i])
+                    valEurMin = fuoriposto(frontiera[0])
 
                 # 1 Manhattan
                 elif euristica == 1:
-                    valEuristica = distanzeMNH[i]
+                    valEurMin = distanzeMNH[0]
 
                     # 2 Manhattan + inversioni
                 elif euristica == 2:
-                    valEuristica = distanzeMNH[i] + conflittiVerticali(
-                        frontiera[i]) + conflittiOrizzontali(frontiera[i])
+                    valEurMin = distanzeMNH[0] + conflittiVerticali(
+                        frontiera[0]) + conflittiOrizzontali(frontiera[0])
 
                 # 3 A* (numero passi sluzione + Manhattan + inversioni)
                 elif euristica == 3:
-                    valEuristica = distanzeMNH[i] + len(elencoMosse[i]) + \
-                        conflittiVerticali(frontiera[i]) + conflittiOrizzontali(frontiera[i])
+                    valEurMin = distanzeMNH[0] + \
+                        conflittiVerticali(frontiera[0]) + conflittiOrizzontali(frontiera[0])
 
-                # Confronto nuovo valore euristica con valore minimo precedente
-                if valEuristica < valEurMin:
-                    valEurMin = valEuristica
-                    indiceMin.clear()
-                    indiceMin.append(i)
-                elif valEuristica == valEurMin:
-                    indiceMin.append(i)
+                for i in range(1, len(frontiera)):
+                    # 0 Celle fuori posto
+                    if euristica == 0:
+                        valEuristica = fuoriposto(frontiera[i])
 
-            if not finito:
-                espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
+                    # 1 Manhattan
+                    elif euristica == 1:
+                        valEuristica = distanzeMNH[i]
 
-        risultati.append(nroNodiCk)
-        if nroNodiCk >= 5000:
-            elapsed_time = time.time() - start_time
-            risultati.append(5001)
-        else:
-            risultati.append(len(elencoMosse[0]))
-        # Salvataggio risultati in array
-        risultati.append(elapsed_time)
+                        # 2 Manhattan + inversioni
+                    elif euristica == 2:
+                        valEuristica = distanzeMNH[i] + conflittiVerticali(
+                            frontiera[i]) + conflittiOrizzontali(frontiera[i])
 
-        if finito:
-            '''
-            mosse = elencoMosse[0]
-            print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
-            print("Nunero di mosse da eseguire: ", len(mosse))
-            print("Tempo impiegato: ", elapsed_time)
-            print("Elenco mosse:\n", mosse)
-            '''
-        else:
-            print("Soluzione non trovata in ", maxCicli, " passi\n")
-    # Scrittura del file
-    ris = ""
-    for el in risultati:
-        ris += str(el) + " "
-    ris += "\n"
-    file.write(ris)
+                    # 3 A* (numero passi sluzione + Manhattan + inversioni)
+                    elif euristica == 3:
+                        valEuristica = distanzeMNH[i] + len(elencoMosse[i]) + \
+                            conflittiVerticali(frontiera[i]) + conflittiOrizzontali(frontiera[i])
+
+                    # Confronto nuovo valore euristica con valore minimo precedente
+                    if valEuristica < valEurMin:
+                        valEurMin = valEuristica
+                        indiceMin.clear()
+                        indiceMin.append(i)
+                    elif valEuristica == valEurMin:
+                        indiceMin.append(i)
+
+                if not finito:
+                    espandiFrontiera(frontiera[indiceMin[randint(0, len(indiceMin)-1)]])
+
+            risultati.append(nroNodiCk+1)
+            if nroNodiCk >= 5000:
+                elapsed_time = time.time() - start_time
+                risultati.append(5001)
+            else:
+                risultati.append(len(elencoMosse[0]))
+            # Salvataggio risultati in array
+            risultati.append(elapsed_time)
+
+            if finito:
+                '''
+                mosse = elencoMosse[0]
+                print("E' stata trovata una soluzione in ", nroNodiCk, "passi")
+                print("Nunero di mosse da eseguire: ", len(mosse))
+                print("Tempo impiegato: ", elapsed_time)
+                print("Elenco mosse:\n", mosse)
+                '''
+            else:
+                print("Soluzione non trovata in ", maxCicli, " passi\n")
+        # Scrittura del file
+        ris = ""
+        for el in risultati:
+            ris += str(el) + " "
+        ris += "\n"
+        file.write(ris)
 file.close()

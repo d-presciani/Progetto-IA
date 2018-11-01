@@ -1,3 +1,39 @@
+while sel != 3:
+    sel = input(
+        "Selezionare operazione:\n1) Risolvi schema\n2) Genera dati per analisi\n3)Esci\nSelezione: ")
+    if sel == 1:
+        while True:
+            try:
+                dimensione = int(input("Inserire numero di elementi per riga / colonna: "))
+            except ValueError:
+                print("Inserire un numero ")
+                continue
+            else:
+                if dimensione < 1:
+                    print("Il numero deve essere maggiore di 1")
+                    continue
+                else:
+                    break
+        print("Dimensione: ", dimensione)
+
+    else:
+        print("Input non riconosciuto")
+
+
+"""
+a = [int(x) for x in input("Inserire 4 numeri: ").split()]
+print("Numeri inseriti: ", a)
+
+
+sel = 0
+while sel != 3:
+    sel = input(
+        "Selezionare operazione:\n1) Risolvi schema\n2) Genera dati per analisi\n3)Esci\nSelezione: ")
+    sel = int(sel)
+    if not isinstance(sel, int):
+        print("Input not int")
+
+
 a = 7
 b = 2
 
@@ -20,7 +56,7 @@ for i in range(0, len(listaMom)):
 print(len(listaMom))
 print(listaMom)
 
-"""
+
 lista.append(list(listaMom))
 
 listaMom.clear()

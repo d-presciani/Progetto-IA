@@ -7,6 +7,7 @@ import time
 maxCicli = 5000
 dimensione = 4  # Numero di elementi per riga (numero di elementi totali = dimensione^2 -1)
 elapsed_time = 0
+file = open("risultati.txt", "w")
 
 
 # Funzione per stampa della griglia
@@ -134,69 +135,78 @@ griglia = [i for i in range(1, dimensione*dimensione)]
 griglia.append(0)
 mescola()
 '''
-griglia = [1,  9,  4,  6, 11, 12,  2,  7,  0, 13,  5, 14, 10,  3, 15,  8]
+griglia = [1,  9,  4,  6, 11, 12,  2,  7,  10, 13,  5, 14, 0,  3, 15,  8]
 stampa(griglia)
 print("Distanza manhattan: ", distanzaManhattan(griglia))
-
+grigliaCopy = griglia
+file.write("Prof NodiEspl Tempo\n")
 
 # Variabili
-frontiera = []
-elencoMosse = []
-livello = 0  # Variabile per memorizzazione livello
-maxProf = 14
-finito = False
-nroNodiCk = 0
-start_time = time.time()
+maxProfLim = 17
 
-# Main
-# Inizialmente inserisco tutti gli elementi limitrofi a 0 nella frontiera
-espandiFrontiera()
-# Fino a quando non ho finito gli elementi nella frontiera oppure non ho trovato una soluzione
-while len(frontiera) != 0 and not finito:
-    # Eseguo il movimento di uno degli elementi della Frontiera se questo non mi porta l'albero ad una profondità maggiore della massima
-    if livello <= maxProf:
-        elem = frontiera.pop()
-        # Se l'elemento è uno zero allora riduco di uno la profondità
-        if elem == 0:
-            livello -= 1
+
+for maxProf in range(1, maxProfLim):
+    print("Prof max: ", maxProf)
+    maxProf+1
+    griglia = grigliaCopy
+    frontiera = []
+    elencoMosse = []
+    livello = 0  # Variabile per memorizzazione livello
+    finito = False
+    nroNodiCk = 0
+    start_time = time.time()
+    # Main
+    # Inizialmente inserisco tutti gli elementi limitrofi a 0 nella frontiera
+    espandiFrontiera()
+    # Fino a quando non ho finito gli elementi nella frontiera oppure non ho trovato una soluzione
+    while len(frontiera) != 0 and not finito:
+        # Eseguo il movimento di uno degli elementi della Frontiera se questo non mi porta l'albero ad una profondità maggiore della massima
+        if livello <= maxProf:
+            elem = frontiera.pop()
+            # Se l'elemento è uno zero allora riduco di uno la profondità
+            if elem == 0:
+                livello -= 1
+            else:
+                nroNodiCk += 1
+                indiceElemento = griglia.index(elem)
+                indiceSpazio = griglia.index(0)
+                griglia[indiceSpazio] = elem
+                griglia[indiceElemento] = 0
+                elencoMosse.append(elem)
+                # Dopo aver mosso una casella controllo di non aver trovato una soluzione
+                if distanzaManhattan(griglia) == 0:
+                    finito = True
+                # Dopo aver fatto dei movimenti espando la frontiera
+                espandiFrontiera()
+            if nroNodiCk % 250000 == 0:
+                print("Operazione numero ", nroNodiCk)
+        # La mossa porterebbe l'albero ad una proffondità superiore alla massima impostata.
+        # Annullo l'ultima azione e rimuovo gli elementi insiriti nella frontiera
         else:
-            nroNodiCk += 1
+            livello -= 1
+            elem = elencoMosse.pop()
             indiceElemento = griglia.index(elem)
             indiceSpazio = griglia.index(0)
             griglia[indiceSpazio] = elem
             griglia[indiceElemento] = 0
-            elencoMosse.append(elem)
-            # Dopo aver mosso una casella controllo di non aver trovato una soluzione
-            if distanzaManhattan(griglia) == 0:
-                finito = True
-            # Dopo aver fatto dei movimenti espando la frontiera
-            espandiFrontiera()
-        if nroNodiCk % 250000 == 0:
-            print("Operazione numero ", nroNodiCk)
-    # La mossa porterebbe l'albero ad una proffondità superiore alla massima impostata.
-    # Annullo l'ultima azione e rimuovo gli elementi insiriti nella frontiera
-    else:
-        livello -= 1
-        elem = elencoMosse.pop()
-        indiceElemento = griglia.index(elem)
-        indiceSpazio = griglia.index(0)
-        griglia[indiceSpazio] = elem
-        griglia[indiceElemento] = 0
-        # Elimino dalla frontiera tutti i numeri fino ad arrivare allo 0
-        while frontiera[-1] != 0:
-            frontiera.pop()
-        frontiera.pop()  # Elimino anche lo 0 dalla frontiera
-    '''
-    print("\n\n")
-    stampa(griglia)
-    print("Frontiera: ", frontiera, " | Livello: ", livello)
-    '''
-elapsed_time = time.time() - start_time
+            # Elimino dalla frontiera tutti i numeri fino ad arrivare allo 0
+            while frontiera[-1] != 0:
+                frontiera.pop()
+            frontiera.pop()  # Elimino anche lo 0 dalla frontiera
+        '''
+        print("\n\n")
+        stampa(griglia)
+        print("Frontiera: ", frontiera, " | Livello: ", livello)
+        '''
+    elapsed_time = time.time() - start_time
 
-if finito:
-    print("Soluzione trovata in ", elapsed_time, " secondi")
-    print("Mosse da eseguire: ", elencoMosse)
-    print("Tempo impiegato: ", elapsed_time)
-else:
-    print("Soluzione non trovata, nodi esplorati: ", nroNodiCk)
-    print("Tempo impiegato: ", elapsed_time)
+    if finito:
+        print("Soluzione trovata in ", elapsed_time, " secondi")
+        print("Mosse da eseguire: ", elencoMosse)
+        print("Tempo impiegato: ", elapsed_time)
+    else:
+        print("Soluzione non trovata, nodi esplorati: ", nroNodiCk)
+        print("Tempo impiegato: ", elapsed_time)
+    ris = str(maxProf) + " " + str(nroNodiCk) + " " + str(elapsed_time) + "\n"
+    file.write(ris)
+file.close()
