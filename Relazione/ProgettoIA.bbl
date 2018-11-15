@@ -1,0 +1,23 @@
+\begin{thebibliography}{}
+
+\bibitem[Br{\"u}ngger et~al., 1999]{brungger1999parallel}
+Br{\"u}ngger, A., Marzetta, A., Fukuda, K., and Nievergelt, J. (1999).
+\newblock The parallel search bench zram and its applications.
+\newblock {\em Annals of Operations Research}, 90:45--63.
+
+\bibitem[Russell and Norvig, 2005]{russell2005intelligenza}
+Russell, S.~J. and Norvig, P. (2005).
+\newblock {\em Intelligenza artificiale. Un approccio moderno}, volume~1.
+\newblock Pearson Italia Spa.
+
+\bibitem[Wikipedia, 2018a]{wikiAlgoritmoAStar}
+Wikipedia (2018a).
+\newblock Algoritmo a* --- wikipedia{,} l'enciclopedia libera.
+\newblock [Online; in data 13-novembre-2018].
+
+\bibitem[Wikipedia, 2018b]{wikieurAmm}
+Wikipedia (2018b).
+\newblock Euristica ammissibile --- wikipedia{,} l'enciclopedia libera.
+\newblock [Online; in data 13-novembre-2018].
+
+\end{thebibliography}

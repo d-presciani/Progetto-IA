@@ -1,0 +1,328 @@
+\documentclass[letterpaper, 10 pt]{IEEEconf}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{multirow}
+\usepackage[square,numbers,sort&compress]{natbib}
+
+\pagenumbering{arabic}
+\pagestyle{plain}
+
+\title{\LARGE \bf
+Risoluzione puzzle gioco del 15 tramite algoritmi di ricerca
+}
+
+\author{Presciani Davide, matricola 1035189 - Università degli studi di Bergamo}
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+
+Questo progetto si pone come obbiettivo l’implementazione di algoritmi di ricerca al fine di risolvere il puzzle "gioco del 15".
+
+\end{abstract}
+
+
+\section{INTRODUZIONE}
+Il gioco del 15, consiste in una griglia 4x4 contenente numeri che vanno da 1 a 15; L'obbiettivo di questo gioco, è il posizionare in ordine crescente i numeri, spostando le caselle utilizzando lo spazio vuoto presente nella griglia.\par
+Questo gioco può essere trovato anche in varianti con una griglia di dimensioni diverse, in generale, una griglia di dimensioni NxN conterrà numeri che vanno da $1$ a $N^2-1$.\par
+Questo gioco può essere rappresentato in modo grafico considerando la configurazione dello schema come un nodo e il movimento di una tessera come arco.
+Una volta rappresentato questo gioco in modo grafico, è possibile utilizzare gli algoritmi di ricerca su grafo per risolvere il gioco, inoltre, con specifici algoritmi si può trovare una soluzione che presenti il minor numero di mosse da eseguire al fine di risolvere lo schema dato.\par
+L'utilizzo di algoritmi di ricerca è necessario dato che ogni schema ha una soluzione ottima che richiede tra le 0 e le 80 mosse \cite{brungger1999parallel}; questo con un branching factor medio di 3 porta a dover esplorare circa $10^{38}$ stati ($10^{13}$ se vengono considerate le configurazioni un'unica volta).\par
+L'implementazione degli algoritmi è avvenuta tramite \textit{p0ython}; in particolare lo schema è rappresentato come un array di 16 elementi, ognuno di questi elementi è una delle tessere (il numero 0 viene utilizzato per rappresentare la cella vuota).
+
+
+\section{Algoritmo di ricerca non informata: ricerca a profondità limitata}
+Come primo algoritmo, si è scelto di utilizzare un algoritmo di ricerca a profondità limitata, in modo da poter valutare il numero di stati che si dovrebbero esplorare, utilizzando un algoritmo di ricerca non informata. Inoltre, si vuole analizzare il tempo necessario per esplorare tutte le configurazioni fino ad una determinata profondità. Per effettuare queste misure, è stato generato uno schema che necessita di un numero di spostamenti per arrivare alla soluzione maggiore alla profondità massima fissata.\par
+
+\begin{table}[!h]
+\centering
+\include{./Tabelle/TabConfPosPart}
+\caption{Numero nodi esplorati in relazione della posizione della cella vuota}
+\end{table}
+
+Nella tabella 1, sono riportati il numero di nodi esplorati, in funzione della profondità massima e della posizione di partenza dello spazio vuoto. In particolare, si può notare come, fino ad una profondità pari a 6, il numero di nodi da esplorare è influenzato dalla posizione di partenza, dato che l'algoritmo non ha ancora espanso tutte le celle presenti nello schema.
+Si può inoltre notare come il numero di nodi da esplorare aumenta in modo simile ad un esponenziale.\par
+Nella tabella seguente, sono riportate le medie e le varianze dei tempi per l'esplorazione di tutte le configurazioni ad una determinata profondità massima; si può notare, come ad una profondità massima pari a 16, la varianza dei tempi è pari al 20\% della media di questi ultimi.
+Questa varianza, si presenta benché l'ordine degli stati esplorati non varia da iterazione ad iterazione dell'algoritmo; inoltre, lo schema sul quale è eseguito l'algoritmo è invariato tra le iterazioni.\par
+Questa varianza, si può ipotizzare essere dovuta, dalla presenza di altri processi in esecuzione sul calcolatore utilizzato per eseguire l'algoritmo. Bisogna inoltre far notare, che questi risultati variano molto in base alle specifiche della macchina sul quale viene eseguito l'algoritmo.
+Vista dunque l'alta variabilità dei tempi di esecuzione, su di un algoritmo che non presenta randomicità, non verranno riportate altre analisi temporali sugli algoritmi utilizzati d'ora in avanti visto che questi conterranno elementi di randomicità.
+
+\begin{table}[!h]
+\centering
+\include{./Tabelle/TabMedieVarianze}
+\caption{Medie e varianze dei tempi di esecuzione dell'algoritmo di ricerca a profondità limitata}
+\end{table}
+
+\section{Descrizione delle euristiche utilizzate}
+Per ridurre il numero di stati esplorati, si utilizzano algoritmi di ricerca informata; questi algoritmi sono composti da una funzione di ricerca e di una funzione di conoscenza (funzione euristica).\par
+Il compito della funzione euristica, è lo stimare il numero di passi necessari, da una determinata configurazione, per raggiungere una soluzione (che può non essere ottima).
+Vengono dette euristiche ammissibili quelle euristiche che non sovrastimano il costo effettivamente necessario per raggiungere l'obbiettivo \cite[p.~129]{russell2005intelligenza}.\par
+Le euristiche utilizzate sono:
+\begin{itemize}
+\item \textit{Numero di celle fuori posto (Distanza di Hamming)};
+\item \textit{Distanza di Manhattan};
+\item \textit{Distanza di Manhattan con inversioni}.
+\end{itemize}
+La prima euristica (Distanza di Hamming), fornisce una stima della distanza dalla soluzione, calcolando per ogni schema, il numero di celle che non sono in posizione corretta. Questa euristica è ammissibile in dato che il numero di mosse da eseguire per raggiungere la soluzione, sarà almeno uguale al numero di celle fuori posto\cite{wikieurAmm}.\par
+La seconda euristica utilizzata (distanza di Manhattan), stima la distanza della soluzione calcolando il numero di mosse che ogni tessera deve compiere, per raggiungere la posizione corretta.
+Questa euristica è ammissibile perché è sempre minore o uguale al numero di volte per cui ogni tessera dovrà essere mossa\cite{wikieurAmm}.\par
+L'ultima delle euristiche utilizzate, è una modifica all'euristica distanza di Manhattan. Oltre a calcolare la distanza di Manhattan, si calcolano le inversioni che vanno effettuate sulla stessa linea o colonna e, per ogni inversione, si aumenta la distanza di 2.
+Questa euristica rappresenta l'effettivo numero di movimenti, che è necessario eseguire per invertire la posizione di due tessere che sono sulla stessa linea, o colonna  ed è quindi ammissibile.
+
+
+\section{Comparazione delle euristiche}
+Per comparare le euristiche utilizzate sono stati generate 100 diversi schemi applicando ad una griglia risolta 15 mosse pseudocasuali; possiamo dunque aspettarci che la soluzione ottima per ogni schema sia attorno alle 15 mosse.
+
+\subsection{Distanza di Hamming VS distanza di Manhattan}
+Le prime euristiche che si è deciso di comparare sono la distanza di Hamming, che non presenta un euristica particolarmente intelligente al fine di risolvere questo puzzle, e la distanza di Manhattan.\par
+In entrambi i casi, le due euristiche vengono utilizzate per scegliere la prossima configurazione da esplorare da un algoritmo di ricerca greedy.
+In caso vi siano più configurazioni rilevate dall'euristica, l'algoritmo ne espande una scegliendo randomicamente tra quelle trovate dall'euristica.\pagebreak
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.45]{immagini/"Len soluzione hamming VS manhattan"}
+\caption{Confronto lunghezze soluzioni}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|ccc|}
+\hline
+\multicolumn{3}{|c|}{Lunghezza soluzione} \\
+\hline
+           &    Hamming &  Manhattan \\
+\hline
+     Media &      352,0 &      26,82 \\
+
+10\degree\ percentile &         15 &         13 \\
+
+50\degree\ percentile &         49 &         15 \\
+
+90\degree\ percentile &        139 &         51 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili delle lunghezze delle soluzioni }
+\end{table}
+
+Come possiamo vedere nella tabella 3, utilizzando l'euristica distanza di Manhattan, otteniamo soluzioni con un minor numero di mosse da eseguire. Inoltre, come mostrato in figura 2 e nella tabella 4, l'euristica distanza di Manhattan esplora un numero molto minore di stati rispetto alla distanza di Hamming.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.4]{immagini/"Nro passi hamming VS manhattan"}
+\caption{Confronto configurazioni esplorate}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cc|}
+\hline
+\multicolumn{ 3}{|c|}{Numero di stati esplorati} \\
+\hline
+           &    Hamming &  Manhattan \\
+\hline
+     Media &     1106,1 &     142,16 \\
+
+10\degree\ percentile &       18,5 &       14,5 \\
+
+50\degree\ percentile &      558,5 &         18 \\
+
+90\degree\ percentile &     3236,5 &        467 \\
+\hline
+\end{tabular} 
+\caption{Media e percentili del numero di configurazioni esplorate} 
+\end{table}
+\pagebreak
+Come riportato nella tabella 4, si può notare che la distanza di Manhattan inoltre tende ad avere outliers più contenuti rispetto alla distanza di Hamming.
+Ne risulta quindi, che la distanza di Manhattan è un'euristica caratterizzata da una consistenza maggiore rispetto all'euristica distanza di Hamming. 
+
+
+\subsection{Distanza di Manhattan VS distanza di Manhattan con inversioni}
+Passiamo ora a comparare l'euristica distanza di Manhattan con una sua versione raffinata, ossia una versione che considera anche i passi necessari per invertire di posto due celle sulla stessa linea o colonna.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.45]{immagini/"Len soluzione manhattan VS manhattanInv"}
+\caption{Confronto lunghezze soluzioni}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cc|}
+\hline
+\multicolumn{ 3}{|c|}{Lunghezza soluzione} \\
+\hline
+           &  Manhattan & Manhattan + inversioni \\
+\hline
+     Media &      26,82 &         19 \\
+
+10\degree\ percentile &         13 &         13 \\
+
+50\degree\ percentile &         15 &         15 \\
+
+90\degree\ percentile &         51 &         32 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili delle lunghezze delle soluzioni}
+\end{table}
+
+Comparando i risultati, si può osservare che l'introduzione di informazioni aggiuntive, ha portato ad avere un'euristica che si avvicina al numero di passi ottimo.
+Analizzando la tabella 6 e la figura 4, si può inoltre affermare che l'aggiunta di informazioni ha velocizzato il processo di ricerca riducendo il numero di stati esplorati.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.4]{immagini/"Nro passi manhattan VS manhattanInv"}
+\caption{Confronto configurazioni esplorate}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cc|}
+\hline
+\multicolumn{ 3}{|c|}{Numero di stati esplorati} \\
+\hline
+           &  Manhattan & Manhattan + inversioni \\
+\hline
+     Media &     142,16 &      40,22 \\
+
+10\degree\ percentile &       14,5 &       14,5 \\
+
+50\degree\ percentile &         18 &       17,5 \\
+
+90\degree\ percentile &        467 &         94 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili del numero di configurazioni esplorate} 
+\end{table}
+
+\section{Algoritmo A*}
+L'algoritmo di ricerca A*, differisce dai precedenti algoritmi per via di come viene calcolata l'euristica: oltre ad usare il valore dell'euristica scelta, somma il numero di passi necessari a raggiungere la configurazione corrente.
+Intuitivamente, si può dimostrare che A* è ottimo rispetto ad altri algoritmi di ricerca ammissibili. A* stima ottimisticamente il costo del percorso, in particolare, quando A* termina la sua ricerca, per definizione, avrà trovato un percorso il cui costo attuale è più basso del costo stimato per ogni altro percorso attraverso tutte le altre configurazioni \cite{wikiAlgoritmoAStar}.
+
+\subsection{Comparazione distanza di Manhattan con inversioni e algoritmo A*}
+Analizziamo ora la lunghezza delle soluzioni trovate dall'algoritmo che usa l'euristica distanza di Manhattan con inversioni e l'algoritmo A* con la medesima euristica.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.45]{immagini/"Len soluzione manhattanInv VS Astar"}
+\caption{Confronto lunghezze soluzioni}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cc|}
+\hline
+\multicolumn{ 3}{|c|}{Lunghezza soluzione} \\
+\hline
+           & Manhattan + inversioni &         A* \\
+\hline
+     Media &         19 &      14,44 \\
+
+10\degree\ percentile &         13 &         13 \\
+
+50\degree\ percentile &         15 &         15 \\
+
+90\degree\ percentile &         32 &         15 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili delle lunghezze delle soluzioni}
+\end{table}
+
+Analizzando la figura 5, si può notare come l'algoritmo A* riesce a trovare una soluzione sempre più corta o uguale all'algoritmo di ricerca greedy che utilizza come euristica la distanza di Manhattan con inversioni.
+Di seguito sono riportati un'immagine ed una tabella che riportano il numero di stati esplorati dai due algoritmi.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[scale=0.4]{immagini/"Nro passi manhattanInv VS Astar"}
+\caption{Confronto configurazioni esplorate}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+ \begin{tabular}{|c|cc|}
+\hline
+\multicolumn{ 3}{|c|}{Numero di stati esplorati} \\
+
+           & Manhattan + inversioni &         A* \\
+\hline
+     Media &      40,22 &       71,5 \\
+
+10\degree\ percentile &       14,5 &       15,5 \\
+
+50\degree\ percentile &       17,5 &       35,5 \\
+
+90\degree\ percentile &         94 &        109 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili del numero di configurazioni esplorate} 
+\end{table}
+\pagebreak
+
+Rispetto ai casi precedenti, si può notare che l'algoritmo A* esplora mediamente un numero maggiore di stati rispetto ad un algoritmo greedy.
+Aumentando il numero di mosse per generare gli schemi partendo da uno schema risolto, si è notato come questo fenomeno si inverte e, quindi, l'algoritmo A* esplora mediamente un numero minore di stati rispetto a tutti gli altri algoritmi; in alcuni casi però l'algoritmo A* arriva ad esplorare circa 1000 configurazioni risultando più lento degli algoritmi che usando un’euristica basata sul calcolo della distanza di Manhattan.
+
+\section{Analisi ripetizione algoritmi su stessa configurazione}
+Come ultima analisi, vista la presenza di randomicità negli algoritmi, sono state eseguite 20 iterazioni degli algoritmi su di uno stesso schema, generato applicando 20 mosse pseudocasuali ad uno schema risolto, al fine di valutare come la randomicità influenzasse la lunghezza delle soluzioni trovate e il numero di stati esplorati.
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cccc|}
+\hline
+\multicolumn{ 5}{|c|}{Lunghezza soluzione} \\
+\hline
+& Hamming &  Manhattan & Manhattan +  &         A* \\
+& & & inversioni & \\
+\hline
+     Media &       39,6 &       16,6 &         17 &         15 \\
+
+10\degree\ per. &         17 &         15 &         15 &         15 \\
+
+50\degree\ per. &         17 &         17 &         17 &         15 \\
+
+90\degree\ per. &         82 &         17 &         17 &         15 \\
+\hline
+\end{tabular}  
+\caption{Media e percentili delle lunghezze delle soluzioni}
+\end{table}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|c|cccc|}
+\hline
+\multicolumn{ 5}{|c|}{Numero di stati esplorati} \\
+\hline
+& Hamming &  Manhattan & Manhattan +  &         A* \\
+& & & inversioni & \\
+\hline
+     Media &      471,7 &       57,2 &         27 &       97,5 \\
+
+10\degree\ per. &       51,5 &         17 &       16,5 &         87 \\
+
+50\degree\ per. &        162 &       26,5 &         22 &         97 \\
+
+90\degree\ per. &       1297 &      120,5 &         45 &      108 \\
+\hline
+\end{tabular}   
+\caption{Media e percentili del numero di configurazioni esplorate} 
+\end{table}
+
+Analizzando i dati nelle tabelle 9 e 10 si può notare come tutti gli algoritmi escluso A* vengono influenzati dalla randomicità nella generazione dei risultati; inoltre come evidenziato nel capitolo precedente, A* esplora un numero maggiore di stati rispetto agli algoritmi che si basano sulla distanza di Manhattan.
+
+\section{Conclusioni}
+In questo progetto sono stati implementati alcuni degli algoritmi visti a lezione per meglio comprenderne il funzionamento, i metodi per implementarli e per avere dei dati per riuscire a verificare quanto visto durante il corso.
+Nel confrontare i dati si è potuto inoltre constatare come l'algoritmo A*, che genera soluzioni ottime, non è l'algoritmo che esplora il minor numero di stati.
+Si potrebbe inoltre aumentare la velocità di esecuzione del codice utilizzando strutture diverse per la memorizzazione dei dati: gli algoritmi utilizzati sono stati implementati utilizzando degli array, strutture non ottimizzate per la ricerca, utilizzando strutture ottimizzate, si può dunque supporre che l'esecuzione diventi più rapida, visto che la ricerca di un elemento in un array ha costo $O(n)$, mentre utilizzando strutture ottimizzate (come ad esempio delle mappe) si può arrivare ad avere un costo per ogni ricerca pari a $O(1)$.  
+
+\bibliographystyle{apalike}
+\bibliography{Riferimenti}
+
+\end{document}
